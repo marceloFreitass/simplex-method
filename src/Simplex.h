@@ -21,7 +21,7 @@ class Simplex{
         Model formaPadrao(Model* model);
 
         void twoPhase();
-        Simplex(Model model);
+        Simplex(Model& model);
 
 
         bool testeNegatividade(vector<double> y);

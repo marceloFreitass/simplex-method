@@ -76,13 +76,12 @@ void Model::addConstraint(vector<double> a, string relation, double b1){
 }
 
 void Model::setReversedMatrix(){
+    cout << "\n\nChamei\n\n";
 
     int qConstraints = this->b.size();
     
     vector<vector<double>> reversedB(qConstraints, vector<double>(qConstraints*2));
     vector<vector<double>> reversedBcopy(qConstraints, vector<double>(qConstraints*2));
-    
-    
     
     for(int i = 0; i < this->basics.size(); i++){
         for(int j = 0; j < qConstraints; j++){
@@ -155,8 +154,6 @@ void Model::setReversedMatrix(){
     reversedB.resize(qConstraints, vector<double>(qConstraints));
     
     this->reversedB = reversedB;
-    
-    
     
 }
 
@@ -258,12 +255,17 @@ void Model::smallerRelativeCost(){
 };
 
 int Model::checkRelativeCost(){
-
-    if(this->relativeCosts[this->sK] < 0)
+    cout << "Menor custo relativo: " << this->relativeCosts[this->sK] << endl;
+    if(this->relativeCosts[this->sK] < 0){
+        
         return 0;
-    if(this->relativeCosts[this->sK] == 0)
+
+    }
+    if(this->relativeCosts[this->sK] == 0){
         return 1;
+    }
     
+    cout << "Retornou 2 \n";
     return 2;
 }
 

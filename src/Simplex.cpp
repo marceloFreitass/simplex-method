@@ -8,14 +8,22 @@ struct slackSurplus{
     int value;
 };
 
-Simplex::Simplex(Model model){
+Simplex::Simplex(Model& model){
 
-    
+    cout << "\n\nCarregando o modelo..\n\n";
+    bool need = model.checkNeedTwoPhase();
     this->cGE = 0;
-    model.setNeedTwoPhase(model.checkNeedTwoPhase());
-    cout << "Precisa: " << model.getNeedTwoPhase() << endl;
+    model.setNeedTwoPhase(need);
+    cout << "Precisa: " << need << endl;
     if(!model.getInTwoPhase()){
-        this->model = formaPadrao(&model);
+        cout << "\n\nColocando em forma padrao\n\n";
+        cout << "?" << endl;
+        bool need = model.checkNeedTwoPhase();
+        cout << "Precisa1: " << need << endl;
+        model = formaPadrao(&model);
+        this->model = model;
+        need = this->model.getNeedTwoPhase();
+        cout << "Precisa2: " << need << endl;
     }
     else{
         
@@ -23,12 +31,13 @@ Simplex::Simplex(Model model){
         cout << "O modelo e esse: " << &this->model << endl; //Checar pq o modelo ta diferente
     }
     
+    cout << "Endereco do modelo: " << &this->model << endl << endl;
     //Duas fases
 }
 
 void Simplex::twoPhase(){
 
-    
+    cout << "\n\nDuas fases\n\n";
     Model newModel('-');
     newModel.setNeedTwoPhase(0);
     newModel.setInTwoPhase(1);
@@ -100,9 +109,12 @@ void Simplex::twoPhase(){
     model.setNotBasics(notBasics);
 
     cout << "\n\n\n\n\n MODELO COMEÇA AQUI \n\n";
+
+
     
     cout << model.getInTwoPhase() << endl;
-    solve(model);
+    //solve(model);
+    //return;
 
     
     //Executar de novo, e acompanhar onde ta o erro (depois de setar o Y)
@@ -115,6 +127,8 @@ Model Simplex::formaPadrao(Model* model){
     char type = model->getType();
 
     Model newModel(type);
+    newModel.setNeedTwoPhase(model->getNeedTwoPhase());
+
 
     vector<double> c = model->getC();
     int Csize = c.size();
@@ -129,7 +143,7 @@ Model Simplex::formaPadrao(Model* model){
     vector<vector<double>> A = model->getA();
     vector<string> relations = model->getRelations();
 
-    cout << "Tamanho!: " << A.size() << " e " << A[0].size(); 
+    cout << "Tamanho!: " << A.size() << " e " << A[0].size() << endl;
     int constrSize = b.size();
     int numVariables = 0;
 
@@ -175,6 +189,8 @@ Model Simplex::formaPadrao(Model* model){
         }
         cout << endl;
     }
+
+    cout << "Precisa3: " << newModel.getNeedTwoPhase() << endl;
     return newModel;
 
 }
@@ -195,13 +211,14 @@ bool Simplex::testeNegatividade(vector<double> y){
 void Simplex::solve(Model& model){
 
     vector<int> basics;
-    vector<int> notBasics;
+    vector<int> notBasics;  
     vector<double> c = model.getC();
     cout << "Endereco de newModel: " << &model << endl;
     int first = 1;
     bool flag = 1;
     int size = model.getSize();
     cout << "Entrando...\n";
+    cout << "Precisa...: " << model.getNeedTwoPhase() << endl;
     if(model.getNeedTwoPhase()){
         cout << "Out\n";
         twoPhase();
@@ -220,7 +237,7 @@ void Simplex::solve(Model& model){
         model.setNotBasics(notBasics);
     }
     else if(!model.getOutTwoPhase()){
-        
+        cout << "C" << endl;
         for(int i = 0; i < size; i++){
             if(c[i] != 0){
                 notBasics.push_back(i+1);
@@ -233,7 +250,7 @@ void Simplex::solve(Model& model){
         model.setNotBasics(notBasics);
     }
     
-    
+    cout << "Duas vezes\n";
     vector<double> y;
     int i;
 
@@ -246,17 +263,22 @@ void Simplex::solve(Model& model){
         }
     }
 
+    
     while(flag){
         
+        if(!flag){
+            break;
+        }
         
+        cout << "Aqui" << endl;
         model.setReversedMatrix();
-        cout << "Aqui!\n";
+        
         model.setxB();
         model.setP();
         model.calcRelativeCosts();
         model.smallerRelativeCost();
         flag = (model.checkRelativeCost() == 0);
-        
+        cout << "Flag: " << flag << endl;
         if(!flag){
             break;
         }
@@ -296,13 +318,13 @@ void Simplex::solve(Model& model){
                     cout << model.getNotBasics()[i] << " ";
                 }
                 cout << endl;
-                return;
+                flag = 0;
             }            
         }
     }
     cout << "Saiu do while\n";
 
-    
+    return;
     setoptSolution();   
 }
 
@@ -341,7 +363,7 @@ void Simplex::setOptValue(){
     if(this->model.getType() == '+'){
         this->optValue *= -1;
     }
-    cout << this->optValue << endl;
+    cout << "Opt.Value: " << this->optValue << endl;
 }
 
 void Simplex::showOptSolution(){
@@ -355,4 +377,7 @@ void Simplex::showOptSolution(){
     cout << "]\n";
 }
 
-void Simplex::showOptValue(){cout << "Optimal value: " << this->optValue << endl;}
+void Simplex::showOptValue(){
+    cout << "?" << endl;
+    cout << "Optimal value: " << this->optValue << endl;
+}

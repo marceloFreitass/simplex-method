@@ -17,9 +17,9 @@ int main(){
 
 	Simplex simplex1(modelo);
 	simplex1.solve(modelo);
-	/* simplex1.showOptValue();
+	simplex1.showOptValue();
 	simplex1.showOptSolution();
-	modelo.showObjFunc(); */
+	//modelo.showObjFunc(); */
 	
 	//
 
