@@ -12,13 +12,20 @@ class Simplex{
         double optValue;
         vector<double> optSolution;
         vector<double> solution;
+        
+        
+        int cGE; //Greater equal count (-1)
 
     public:
 
+        Model formaPadrao(Model* model);
+
+        void twoPhase();
         Simplex(Model model);
 
+
         bool testeNegatividade(vector<double> y);
-        void solve();
+        void solve(Model& model);
         void setoptSolution();
         void setOptValue();
 

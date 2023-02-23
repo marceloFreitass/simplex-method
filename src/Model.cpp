@@ -5,13 +5,14 @@
 using namespace std;
 
 
+Model::Model(){ //type = "-"/"+"
 
-
-Model::Model(){
-
-    vector<double> c; //Fazer com uma estrutura, especificando se é minimo ou maximo
+    
+    vector<double> c;
     vector<double> b;
     vector<vector<double>> A;
+    vector<string> relations;
+
     double optValue = 0;
 
     vector<int> basics;
@@ -22,13 +23,56 @@ Model::Model(){
     vector<double> p;
     vector<double> relativeCosts;
 
+    needTwoPhase = 0;
+    inTwoPhase = 0;
+    outTwoPhase = 0;
+
 };
 
-void Model::setObjFunc(vector<double> c){this->c = c;}
-void Model::addConstraint(vector<double> a, double b1){
+Model::Model(char type){ //type = "-"/"+"
 
+    this->type = type;
+    vector<double> c;
+    vector<double> b;
+    vector<vector<double>> A;
+    vector<string> relations;
+
+    double optValue = 0;
+
+    vector<int> basics;
+    vector<int> notBasics;
+    vector<vector<double>> reversedB;
+    vector<double> xB;
+    vector<double> y;
+    vector<double> p;
+    vector<double> relativeCosts;
+
+
+
+};
+
+bool Model::checkNeedTwoPhase(){
+
+    int size = this->relations.size();
+    for(int i = 0; i < size; i++){
+
+       if(this->relations[i] == ">="){
+            return 1;
+       } 
+    }
+    return 0;
+
+}
+
+void Model::setNeedTwoPhase(bool need){this->needTwoPhase = need;}
+void Model::setInTwoPhase(bool in){this->inTwoPhase = in;}
+void Model::setOutTwoPhase(bool out){this->outTwoPhase = out;}
+void Model::setObjFunc(vector<double> c){this->c = c;}
+void Model::addConstraint(vector<double> a, string relation, double b1){
+   
     this->A.push_back(a);
     this->b.push_back(b1);
+    this->relations.push_back(relation);
 }
 
 void Model::setReversedMatrix(){
@@ -39,8 +83,8 @@ void Model::setReversedMatrix(){
     vector<vector<double>> reversedBcopy(qConstraints, vector<double>(qConstraints*2));
     
     
+    
     for(int i = 0; i < this->basics.size(); i++){
-
         for(int j = 0; j < qConstraints; j++){
             reversedBcopy[i][j] = A[j][basics[i] - 1];
         }
@@ -67,7 +111,7 @@ void Model::setReversedMatrix(){
             }
         }
     }
-
+    cout << "Pq?\n";
     //Gauss Jourdan Elimination
     for(int i = 0; i < qConstraints; i++){
 
@@ -199,13 +243,13 @@ void Model::smallerRelativeCost(){
     double smaller;
     int smallerI;
     for(int i = 0; i < notBasicsSize; i++){
+        
         if(i == 0){
             smaller = this->relativeCosts[i];
             smallerI = i;
             continue;
         }
         if(this->relativeCosts[i] < smaller){
-
             smaller = this->relativeCosts[i];
             smallerI = i;
         }
@@ -231,9 +275,19 @@ void Model::setY(){
     this->y.clear();
     vector<double> y1;
     for(int i = 0; i < qConstraints; i++){
-        y.push_back(this->A[i][this->sK]);
+        //y.push_back(this->A[i][this->sK]);
+        y.push_back(this->A[i][this->notBasics[this->sK] - 1]);
     }
+    cout << "Reverse: \n";
+    showReverseMatrix();
+    cout << "\n";
 
+    cout << "ESCOLHIDO: " << this->sK << endl;
+    cout << "Y antes: \n";
+    for(int i = 0; i < y.size(); i++){
+        cout << y[i] << " ";
+    }
+    cout << endl;
     for(int i = 0; i < qConstraints; i++){
         double sum = 0;
 
@@ -295,19 +349,40 @@ void Model::basisChange(){
 }
 
 int Model::getSize(){return this->c.size();}
+
+bool Model::getOutTwoPhase(){return this->outTwoPhase;}
+bool Model::getNeedTwoPhase(){return this->needTwoPhase;}
+bool Model::getInTwoPhase(){return this->inTwoPhase;}
+vector<string> Model::getRelations(){return this->relations;}
+vector<vector<double>> Model::getA(){return this->A;}
+vector<double> Model::getB(){return this->b;}
 vector<double> Model::getC(){return this->c;}
 vector<double> Model::getY(){return this->y;}
 vector<int> Model::getBasics(){return this->basics;}
 vector<int> Model::getNotBasics(){return this->notBasics;}
 vector<double> Model::getXB(){return this->xB;}
+char Model::getType(){return this->type;}
+
 void Model::showObjFunc(){
 
-    cout << "OF: -min "; //Ajeitar
-    for(int i = 0; i < this->c.size(); i++){
+    int size = c.size();
+    if(this->type == '+'){
+        cout << "OF: max ";
+    }
+    else{
+        cout << "OF: min ";
+    }
+    
+    for(int i = 0; i < size; i++){
         
         if(c[i] != 0){
-
-            cout << c[i] << "X" << i + 1 << " ";
+            cout << c[i] << "X" << i + 1;
+            if(c[i] >= 0 && i != size - 1){
+                cout << " + ";
+            }
+            else if(i != size - 1){
+                cout << " - ";
+            }
         }
     }
     cout << endl;
