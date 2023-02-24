@@ -47,8 +47,6 @@ Model::Model(char type){ //type = "-"/"+"
     vector<double> p;
     vector<double> relativeCosts;
 
-
-
 };
 
 bool Model::checkNeedTwoPhase(){
@@ -64,6 +62,7 @@ bool Model::checkNeedTwoPhase(){
 
 }
 
+void Model::setA(vector<vector<double>> newA){this->A = newA;}
 void Model::setNeedTwoPhase(bool need){this->needTwoPhase = need;}
 void Model::setInTwoPhase(bool in){this->inTwoPhase = in;}
 void Model::setOutTwoPhase(bool out){this->outTwoPhase = out;}
@@ -76,7 +75,6 @@ void Model::addConstraint(vector<double> a, string relation, double b1){
 }
 
 void Model::setReversedMatrix(){
-    cout << "\n\nChamei\n\n";
 
     int qConstraints = this->b.size();
     
@@ -110,7 +108,6 @@ void Model::setReversedMatrix(){
             }
         }
     }
-    cout << "Pq?\n";
     //Gauss Jourdan Elimination
     for(int i = 0; i < qConstraints; i++){
 
@@ -186,9 +183,6 @@ void Model::setxB(){
         xB.push_back(sum);
     }
 
-    for(int i = 0; i < xB.size(); i++){
-        cout << xB[i] << " ";
-    }
     this->xB = xB;
 }
 
@@ -255,7 +249,6 @@ void Model::smallerRelativeCost(){
 };
 
 int Model::checkRelativeCost(){
-    cout << "Menor custo relativo: " << this->relativeCosts[this->sK] << endl;
     if(this->relativeCosts[this->sK] < 0){
         
         return 0;
@@ -265,7 +258,6 @@ int Model::checkRelativeCost(){
         return 1;
     }
     
-    cout << "Retornou 2 \n";
     return 2;
 }
 
@@ -284,8 +276,7 @@ void Model::setY(){
     showReverseMatrix();
     cout << "\n";
 
-    cout << "ESCOLHIDO: " << this->sK << endl;
-    cout << "Y antes: \n";
+    cout << "Y antes: ";
     for(int i = 0; i < y.size(); i++){
         cout << y[i] << " ";
     }
@@ -316,7 +307,6 @@ void Model::ratioTest(){
     for(int i = 0; i < qConstraints; i++){
 
         ratio = this->xB[i]/this->y[i];
-        cout << ratio << endl;
         if(ratio < 0){
             ratio = 999999999;
             
@@ -336,19 +326,7 @@ void Model::ratioTest(){
 
 }
 
-void Model::basisChange(){
-    swap(this->notBasics[this->sK], this->basics[this->xL]);
-    
-    for(int i = 0; i < this->basics.size(); i++){
-        cout << basics[i] << " ";
-    }
-    cout << endl;
-
-    for(int i = 0; i < this->notBasics.size(); i++){
-        cout << notBasics[i] << " ";
-    }
-    cout << endl;
-}
+void Model::basisChange(){swap(this->notBasics[this->sK], this->basics[this->xL]);}
 
 int Model::getSize(){return this->c.size();}
 

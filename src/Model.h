@@ -41,6 +41,7 @@ class Model{
         void setObjFunc(vector<double> c);
         void addConstraint(vector<double> a, string relation, double b);
 
+        void setA(vector<vector<double>> A);
         void setBasics(vector<int> basics);
         void setNotBasics(vector<int> notBasics);
         void setReversedMatrix();

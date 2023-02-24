@@ -20,7 +20,7 @@ class Simplex{
 
         Model formaPadrao(Model* model);
 
-        void twoPhase();
+        void twoPhase(Model& model);
         Simplex(Model& model);
 
 

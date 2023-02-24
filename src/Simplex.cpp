@@ -8,36 +8,35 @@ struct slackSurplus{
     int value;
 };
 
-Simplex::Simplex(Model& model){
+Simplex::Simplex(Model& initialModel){
+    Model teste;
 
-    cout << "\n\nCarregando o modelo..\n\n";
-    bool need = model.checkNeedTwoPhase();
+    double optValue = 0;
+    vector<double> optSolution;
+    vector<double> solution;
+
+    cout << "Carregando o modelo..\n\n";
+    bool need = initialModel.checkNeedTwoPhase();
     this->cGE = 0;
-    model.setNeedTwoPhase(need);
-    cout << "Precisa: " << need << endl;
-    if(!model.getInTwoPhase()){
-        cout << "\n\nColocando em forma padrao\n\n";
-        cout << "?" << endl;
-        bool need = model.checkNeedTwoPhase();
-        cout << "Precisa1: " << need << endl;
-        model = formaPadrao(&model);
-        this->model = model;
-        need = this->model.getNeedTwoPhase();
-        cout << "Precisa2: " << need << endl;
+    initialModel.setNeedTwoPhase(need);
+    if(!initialModel.getInTwoPhase()){
+        cout << "Colocando em forma padrao\n\n";
+        formaPadrao(initialModel);
     }
-    else{
+    // else{
         
-        this->model = model;
-        cout << "O modelo e esse: " << &this->model << endl; //Checar pq o modelo ta diferente
-    }
-    
-    cout << "Endereco do modelo: " << &this->model << endl << endl;
+    //     this->initialModel = initialModel;
+    //      //Checar pq o initialModelo ta diferente
+    // }
+
+    teste = initialModel;
+
     //Duas fases
 }
 
-void Simplex::twoPhase(){
+void Simplex::twoPhase(Model& model){
 
-    cout << "\n\nDuas fases\n\n";
+    cout << "\nPrimeira fase\n";
     Model newModel('-');
     newModel.setNeedTwoPhase(0);
     newModel.setInTwoPhase(1);
@@ -62,18 +61,6 @@ void Simplex::twoPhase(){
     }
 
     newModel.setObjFunc(c);
-    
-    A = newModel.getA();
-    cout << "Precisa: " << newModel.getNeedTwoPhase() << endl;
-    cout << "AAA: \n";
-    for(int i = 0; i < A.size(); i++){
-        for(int j = 0; j < A[i].size(); j++){
-            cout << A[i][j] << " ";
-        }
-        cout << endl;
-    }
-    
-    
     solve(newModel); //Modelo original pegar os nao basicos e basicos
     
     vector<int> notBasics = newModel.getNotBasics();
@@ -100,7 +87,11 @@ void Simplex::twoPhase(){
         }
     }
 
+
+
     A = model.getA();
+
+    
     
     model.setNeedTwoPhase(0);
     model.setInTwoPhase(0);
@@ -108,11 +99,8 @@ void Simplex::twoPhase(){
     model.setBasics(newModel.getBasics());
     model.setNotBasics(notBasics);
 
-    cout << "\n\n\n\n\n MODELO COMEÇA AQUI \n\n";
+    cout << "Segunda fase\n\n";
 
-
-    
-    cout << model.getInTwoPhase() << endl;
     //solve(model);
     //return;
 
@@ -122,8 +110,6 @@ void Simplex::twoPhase(){
 }
 Model Simplex::formaPadrao(Model* model){
     
-    
-
     char type = model->getType();
 
     Model newModel(type);
@@ -143,7 +129,6 @@ Model Simplex::formaPadrao(Model* model){
     vector<vector<double>> A = model->getA();
     vector<string> relations = model->getRelations();
 
-    cout << "Tamanho!: " << A.size() << " e " << A[0].size() << endl;
     int constrSize = b.size();
     int numVariables = 0;
 
@@ -160,39 +145,54 @@ Model Simplex::formaPadrao(Model* model){
             this->cGE++;
         }
         relations[i] = "=";
-        
     }
     numVariables += Csize;
-
-
+    cout << A.size() << endl;
     A.resize(constrSize);
+    cout << A.size() << endl;
     for(int i = 0; i < numVariables; i++){ 
         A[i].resize(numVariables);
     }
-    
-    int numNewVariables = newVariables.size();
-
-    for(int i = 0; i < numNewVariables; i++){
-        A[newVariables[i].row][Csize+i] = newVariables[i].value;
-        newModel.addConstraint(A[i], relations[i], b[i]);
-        c.push_back(0); //Adding on the obj func
-    }
-    newModel.setObjFunc(c);
-
-    A = newModel.getA();
-
-    cout << "Aqui: \n";
-
+    cout << "Matrix " << constrSize << "x" << numVariables << endl;
     for(int i = 0; i < A.size(); i++){
         for(int j = 0; j < A[i].size(); j++){
             cout << A[i][j] << " ";
         }
         cout << endl;
     }
+    newModel.setA(A);
 
-    cout << "Precisa3: " << newModel.getNeedTwoPhase() << endl;
+    int numNewVariables = newVariables.size();
+
+    for(int i = 0; i < numNewVariables; i++){
+        
+        A[newVariables[i].row][Csize+i] = newVariables[i].value;
+        //newModel.addConstraint(A[i], relations[i], b[i]);
+        c.push_back(0); //Adding on the obj func
+    }
+    for(int i = 0; i < A.size(); i++){
+        for(int j = 0; j < A[i].size(); j++){
+            cout << A[i][j] << " ";
+        } 
+        cout << endl;
+    }
+
+    newModel.setObjFunc(c);
+    newModel.setA(A);
+    cout << "Travou aqui\n";
+    A = newModel.getA();
+
+    for(int i = 0; i < A.size(); i++){
+        cout << "I: " << i << endl;
+        for(int j = 0; j < A[i].size(); j++){
+            cout << A[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << "N passou\n";
+    cout << "Passou\n";
+
     return newModel;
-
 }
 
 bool Simplex::testeNegatividade(vector<double> y){
@@ -213,18 +213,13 @@ void Simplex::solve(Model& model){
     vector<int> basics;
     vector<int> notBasics;  
     vector<double> c = model.getC();
-    cout << "Endereco de newModel: " << &model << endl;
     int first = 1;
     bool flag = 1;
     int size = model.getSize();
-    cout << "Entrando...\n";
-    cout << "Precisa...: " << model.getNeedTwoPhase() << endl;
     if(model.getNeedTwoPhase()){
-        cout << "Out\n";
-        twoPhase();
+        twoPhase(model);
     }
     else if(model.getInTwoPhase()){
-        cout << "In\n";
         for(int i = 0; i < size; i++){
             if(c[i] == 0){
                 notBasics.push_back(i + 1);
@@ -250,7 +245,9 @@ void Simplex::solve(Model& model){
         model.setNotBasics(notBasics);
     }
     
-    cout << "Duas vezes\n";
+    vector<vector<double>> A = model.getA();
+    
+    cout << endl;
     vector<double> y;
     int i;
 
@@ -262,7 +259,6 @@ void Simplex::solve(Model& model){
             indexes.push_back(i);
         }
     }
-
     
     while(flag){
         
@@ -270,7 +266,6 @@ void Simplex::solve(Model& model){
             break;
         }
         
-        cout << "Aqui" << endl;
         model.setReversedMatrix();
         
         model.setxB();
@@ -278,7 +273,6 @@ void Simplex::solve(Model& model){
         model.calcRelativeCosts();
         model.smallerRelativeCost();
         flag = (model.checkRelativeCost() == 0);
-        cout << "Flag: " << flag << endl;
         if(!flag){
             break;
         }
@@ -304,34 +298,21 @@ void Simplex::solve(Model& model){
                 }
             }
             if(found == costCount){
-                cout << "Saiu por causa disso.\n";
-                cout << "Basics: \n";
-
-                for(int i = 0; i < model.getBasics().size(); i++){
-                    cout << model.getBasics()[i] << " ";
-                }
-                cout << endl;
-
-                cout << "NotBasics: \n";
-
-                for(int i = 0; i < model.getNotBasics().size(); i++){
-                    cout << model.getNotBasics()[i] << " ";
-                }
-                cout << endl;
-                flag = 0;
+                return;
             }            
         }
     }
-    cout << "Saiu do while\n";
-
-    return;
+    this->model = model;
+    //return;
     setoptSolution();   
 }
 
 void Simplex::setoptSolution(){
 
+
     vector<int> basics = this->model.getBasics();
     vector<int> notBasics = this->model.getNotBasics();
+
     vector<double> xB = this->model.getXB();
     bool flag = 1;
     int qVariables = this->model.getC().size();
@@ -339,7 +320,6 @@ void Simplex::setoptSolution(){
     for(int i = 0; i < qVariables; i++){
         flag = 0;
         for(int j = 0; j < qVariables; j++){
-
             if(i+1 == basics[j]){
                 this->optSolution.push_back(xB[j]);
                 flag = 1;      
@@ -349,6 +329,7 @@ void Simplex::setoptSolution(){
             this->optSolution.push_back(0);
         }
     }
+
     setOptValue();
 }
 
@@ -377,7 +358,4 @@ void Simplex::showOptSolution(){
     cout << "]\n";
 }
 
-void Simplex::showOptValue(){
-    cout << "?" << endl;
-    cout << "Optimal value: " << this->optValue << endl;
-}
+void Simplex::showOptValue(){cout << "Optimal value: " << this->optValue << endl;}
